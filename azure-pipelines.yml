@@ -24,14 +24,18 @@ stages:
       - job: Package_Module
         displayName: 'Package Module'
         pool:
-          vmImage: 'ubuntu 16.04'
+          vmImage: 'ubuntu-18.04'
         steps:
-          - task: GitVersion@5
-            name: gitversion
-            displayName: 'Evaluate Next Version'
+          - task: gitversion/setup@0
+            displayName: Install GitVersion
             inputs:
-              runtime: 'core'
+              versionSpec: '5.x'
+
+          - task: gitversion/execute@0
+            displayName: Evaluate Next Version
+            inputs:
               configFilePath: 'GitVersion.yml'
+              updateAssemblyInfo: false
 
           - task: PowerShell@2
             name: package
@@ -123,7 +127,7 @@ stages:
         displayName: 'Publish Code Coverage'
         dependsOn: Test_Unit_2016
         pool:
-          vmImage: 'ubuntu 16.04'
+          vmImage: 'ubuntu-18.04'
         timeoutInMinutes: 0
         steps:
           - task: DownloadPipelineArtifact@2
@@ -285,7 +289,7 @@ stages:
       - job: Deploy_Module
         displayName: 'Deploy Module'
         pool:
-          vmImage: 'ubuntu 16.04'
+          vmImage: 'ubuntu-18.04'
         steps:
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Pipeline Artifact'
