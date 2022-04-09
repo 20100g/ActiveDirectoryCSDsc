@@ -282,8 +282,7 @@ stages:
         or(
           eq(variables['Build.SourceBranch'], 'refs/heads/main'),
           startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-        ),
-        contains(variables['System.TeamFoundationCollectionUri'], 'dsccommunity')
+        )
       )
     jobs:
       - job: Deploy_Module
@@ -298,27 +297,36 @@ stages:
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
 
-          - task: PowerShell@2
-            name: publishRelease
-            displayName: 'Publish Release'
+          - task: NuGetCommand@2
+            displayName: 'NuGet push'
             inputs:
-              filePath: './build.ps1'
-              arguments: '-tasks publish'
-              pwsh: true
-            env:
-              GitHubToken: $(GitHubToken)
-              GalleryApiToken: $(GalleryApiToken)
-              ReleaseBranch: main
-              MainGitBranch: main
+              command: push
+              packagesToPush: '$(Build.SourcesDirectory)/output/*.nupkg'
+              nuGetFeedType: 'internal'
+              publishVstsFeed: '$(VstsFeedId)'
+            condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
-          - task: PowerShell@2
-            name: sendChangelogPR
-            displayName: 'Send Changelog PR'
-            inputs:
-              filePath: './build.ps1'
-              arguments: '-tasks Create_ChangeLog_GitHub_PR'
-              pwsh: true
-            env:
-              GitHubToken: $(GitHubToken)
-              ReleaseBranch: main
-              MainGitBranch: main
+          # - task: PowerShell@2
+          #   name: publishRelease
+          #   displayName: 'Publish Release'
+          #   inputs:
+          #     filePath: './build.ps1'
+          #     arguments: '-tasks publish'
+          #     pwsh: true
+          #   env:
+          #     GitHubToken: $(GitHubToken)
+          #     GalleryApiToken: $(GalleryApiToken)
+          #     ReleaseBranch: main
+          #     MainGitBranch: main
+
+          # - task: PowerShell@2
+          #   name: sendChangelogPR
+          #   displayName: 'Send Changelog PR'
+          #   inputs:
+          #     filePath: './build.ps1'
+          #     arguments: '-tasks Create_ChangeLog_GitHub_PR'
+          #     pwsh: true
+          #   env:
+          #     GitHubToken: $(GitHubToken)
+          #     ReleaseBranch: main
+          #     MainGitBranch: main
